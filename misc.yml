@@ -10,31 +10,39 @@
   # 确保git是最新版本
   - name: ensure git is at the latest version
     action: apt pkg=git state=latest
+    tags: git
 
   # 安装easy_install
   - name: check whether easy_install is installed
     action: shell which easy_install
     register: easy_installResult
+    tags: python
   - name: download easy_install
     action: command wget ${setuptoolsDownloadURL}${setuptoolsFile}
     only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
+    tags: python
   - name: exact easy_install
     action: command tar -zxvf ${setuptoolsFile}
     only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
+    tags: python
   - name: install easy_install
     action: command chdir=~/${setuptoolsExactFolder} python setup.py install
     only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
+    tags: python
   - name: clean downloaded files
     action: command chdir=~ rm ${setuptoolsFile}
     only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
+    tags: python
 
   # 安装pip
   - name: check whether pip installed
     action: shell which pip
     register: pipResult
+    tags: python
   - name: install pip
     action: easy_install name=pip
     only_if: "'${pipResult.stdout}'.find('bin/pip') == -1"
+    tags: python
 
   # 安装vitualenv和virtualenvwrapper
   - name: ensure virtualenv and virtualenvwrapper is installed
@@ -42,3 +50,4 @@
     with_items:
         - virtualenv
         - virtualenvwrapper
+    tags: python
