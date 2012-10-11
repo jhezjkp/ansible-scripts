@@ -1,17 +1,21 @@
 ---
 - hosts: debian
+  vars:
+    setuptoolsDownloadURL: http://pypi.python.org/packages/source/s/setuptools/
+    setuptoolsFile: setuptools-0.6c11.tar.gz
+    setuptoolsExactFolder: setuptools-0.6c11
   user: root 
   tasks:
   - name: ensure git is at the latest version
     action: apt pkg=git state=latest
   - name: download easy_install
-    action: command wget http://pypi.python.org/packages/source/s/setuptools/setuptools-0.6c11.tar.gz#md5=7df2a529a074f613b509fb44feefe74e
+    action: command wget ${setuptoolsDownloadURL}${setuptoolsFile}
   - name: exact easy_install
-    action: command tar -zxvf setuptools-0.6c11.tar.gz
+    action: command tar -zxvf ${setuptoolsFile}
   - name: install easy_install
-    action: command chdir=~/setuptools-0.6c11 python setup.py install
+    action: command chdir=~/${setuptoolsExactFolder} python setup.py install
   - name: clean downloaded files
-    action: command chdir=~ rm setuptools-0.6c11.tar.gz
+    action: command chdir=~ rm ${setuptoolsFile}
   - name: ensure pip is installed
     action: easy_install name=pip
   - name: ensure virtualenv is installed
