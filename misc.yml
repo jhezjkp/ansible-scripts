@@ -5,19 +5,40 @@
     setuptoolsFile: setuptools-0.6c11.tar.gz
     setuptoolsExactFolder: setuptools-0.6c11
   user: root 
+
   tasks:
+  # 确保git是最新版本
   - name: ensure git is at the latest version
     action: apt pkg=git state=latest
+
+  # 安装easy_install
+  - name: check whether easy_install is installed
+    action: shell which easy_install
+    register: easy_installResult
   - name: download easy_install
     action: command wget ${setuptoolsDownloadURL}${setuptoolsFile}
+    only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
   - name: exact easy_install
     action: command tar -zxvf ${setuptoolsFile}
+    only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
   - name: install easy_install
     action: command chdir=~/${setuptoolsExactFolder} python setup.py install
+    only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
   - name: clean downloaded files
     action: command chdir=~ rm ${setuptoolsFile}
-  - name: ensure pip is installed
+    only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
+
+  # 安装pip
+  - name: check whether pip installed
+    action: shell which pip
+    register: pipResult
+  - name: install pip
     action: easy_install name=pip
+    only_if: "'${pipResult.stdout}'.find('bin/pip') == -1"
+
+  # 安装vitualenv和virtualenvwrapper
   - name: ensure virtualenv is installed
     action: easy_install name=virtualenv
+  - name: ensure virtualenvwrapper is installed
+    action: easy_install name=virtualenvwrapper
 
