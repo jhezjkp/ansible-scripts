@@ -7,6 +7,20 @@
   user: root 
 
   tasks:
+  # 增加网易开源镜像为更新源(ms有问题，只能在ubuntu下使用apt_repository?)
+  # 要使用apt_repository模块先要安装python-software-properties
+  #- name: ensure python-software-properties is installed
+    #action: apt pkg=python-software-properties state=installed
+    #tags: repository
+  #- name: ensure netease mirror is in the sources list
+    #action: apt_repository repo='$item'
+    #with_items:
+        #- deb http://mirrors.163.com/debian/ squeeze main non-free contrib
+        #- deb http://mirrors.163.com/debian/ squeeze-proposed-updates main non-free contrib
+        #- deb-src http://mirrors.163.com/debian/ squeeze main non-free contrib
+        #- deb-src http://mirrors.163.com/debian/ squeeze-proposed-updates main non-free contrib
+    #tags: repository
+
   # 确保git是最新版本
   - name: ensure git is at the latest version
     action: apt pkg=git state=latest
