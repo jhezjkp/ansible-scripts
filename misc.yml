@@ -95,7 +95,14 @@
     tags: zsh
   - name: install oh-my-zsh
     action: shell chdir=~ creates=.zshrc curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | sh & /bin/true
-    #only_if: "'${zshResult.stdout}'.find('bin/zsh') == -1"
+    tags: zsh
+  - name: check plugins in oh-my-zsh
+    action: shell chdir=~ sed -n '/plugins=(git github pip virtualenvwrapper python ruby rails3)/p' .zshrc & /bin/true
+    register: ohMyZshResult
+    tags: zsh
+  - name: enable plugins in oh-my-zsh
+    action: shell chdir=~ sed -i 's/plugins=(git)/plugins=(git github pip virtualenvwrapper python ruby rails3)/' .zshrc
+    only_if: "'${ohMyZshResult.stdout}'.find('plugins=') == -1"
     tags: zsh
 
   # 安装easy_install
