@@ -105,6 +105,14 @@
     only_if: "'${ohMyZshResult.stdout}'.find('plugins=') == -1"
     tags: zsh
 
+  # vim安装配置
+  - name: ensure vim is the latest
+    action: apt pkg=vim state=latest
+    tags: vim
+  - name: configure vim
+    action: shell chdir=~ creates=.vim/vimrc curl -L https://github.com/jhezjkp/dot-vimrc/raw/master/tools/install.sh | sh
+    tags: vim
+
   # 安装easy_install
   - name: check whether easy_install is installed
     action: shell which easy_install & /bin/true
