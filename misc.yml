@@ -1,34 +1,106 @@
 ---
-- hosts: debian
+# ansible-playbook misc.yml --extra-vars "hosts=venus user=root"
+- hosts: $hosts
   vars:
+    #setuptools
     setuptoolsDownloadURL: http://pypi.python.org/packages/source/s/setuptools/
     setuptoolsFile: setuptools-0.6c11.tar.gz
     setuptoolsExactFolder: setuptools-0.6c11
-  user: root 
+    #gem
+    gemUrl: http://rubyforge.org/frs/download.php/76072/rubygems-1.8.24.zip
+    gemFile: rubygems-1.8.24.zip
+    gemFolder: rubygems-1.8.24
+    gemLinkTarge: gem1.8
+    #网易debian更新源配置文件
+    163Repo: http://mirrors.163.com/.help/sources.list.squeeze
+  user: $user
 
   tasks:
-  # 增加网易开源镜像为更新源(ms有问题，只能在ubuntu下使用apt_repository?)
-  # 要使用apt_repository模块先要安装python-software-properties
-  #- name: ensure python-software-properties is installed
-    #action: apt pkg=python-software-properties state=installed
-    #tags: repository
-  #- name: ensure netease mirror is in the sources list
-    #action: apt_repository repo='$item'
-    #with_items:
-        #- deb http://mirrors.163.com/debian/ squeeze main non-free contrib
-        #- deb http://mirrors.163.com/debian/ squeeze-proposed-updates main non-free contrib
-        #- deb-src http://mirrors.163.com/debian/ squeeze main non-free contrib
-        #- deb-src http://mirrors.163.com/debian/ squeeze-proposed-updates main non-free contrib
-    #tags: repository
+  # 增加网易开源镜像为更新源
+  - name: check repository
+    action: shell grep mirrors.163.com /etc/apt/sources.list & /bin/true
+    register: repoResult
+    tags: repository
+  - name: backup current repository config
+    action: shell mv /etc/apt/sources.list /etc/apt/sources.list.bak
+    tags: repository
+    only_if: "'${repoResult.stdout}'.find('mirrors.163.com') == -1"
+  - name: download 163 repository config file
+    action: get_url url=$163Repo dest=/etc/apt/sources.list
+    tags: repository
+    only_if: "'${repoResult.stdout}'.find('mirrors.163.com') == -1"
+  - name: refresh the repository
+    action: shell apt-get update
+    tags: repository
+    only_if: "'${repoResult.stdout}'.find('mirrors.163.com') == -1"
 
   # 确保git是最新版本
   - name: ensure git is at the latest version
     action: apt pkg=git state=latest
     tags: git
 
+  # 安装一些基础软件包
+  - name: install basic packages
+    action: apt pkg=$item state=installed
+    with_items:
+        - make
+        - curl
+        - unzip
+        - zip
+        - ruby-full
+        #- ruby
+        #- ruby-dev
+        #- libruby
+        #- rake
+    tags: setup
+
+  - name: check whether gem is installed
+    action: shell which gem & /bin/true
+    register: gemResult
+    tags: setup
+
+  - name: download gem
+    action: get_url url=$gemUrl dest=~/$gemFile thirsty=no
+    tags: setup
+    only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
+
+  - name: exact gem
+    action: shell chdir=~ unzip -o $gemFile
+    tags: setup
+    only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
+
+  - name: install gem
+    action: shell chidr=~/$gemFolder ruby ~/$gemFolder/setup.rb
+    tags: setup
+    only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
+
+  - name: link $gemLinkTarge to gem
+    action: shell ln -s /usr/bin/$gemLinkTarge /usr/bin/gem
+    tags: setup
+    only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
+
+  # 确保ohai已安装
+  - name: check whether ohai is installed
+    action: shell which ohai & /bin/true
+    register: ohaiResult
+    tags: setup
+  - name: ensure ohai is installed
+    action: shell gem source -a http://rubygems.org & gem install ohai
+    only_if: "'${ohaiResult.stdout}'.find('bin/ohai') == -1"
+    tags: setup
+
+  # zshell安装配置
+  - name: ensure zsh is the latest
+    action: apt pkg=zsh state=latest
+    tags: zsh
+  - name: install oh-my-zsh
+    action: shell chdir=~ creates=.zshrc curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | sh & /bin/true
+    #only_if: "'${zshResult.stdout}'.find('bin/zsh') == -1"
+    tags: zsh
+
   # 安装easy_install
   - name: check whether easy_install is installed
-    action: shell which easy_install
+    action: shell which easy_install & /bin/true
     register: easy_installResult
     tags: python
   - name: download easy_install
@@ -50,7 +122,7 @@
 
   # 安装pip
   - name: check whether pip installed
-    action: shell which pip
+    action: shell which pip & /bin/true
     register: pipResult
     tags: python
   - name: install pip
