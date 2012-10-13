@@ -47,6 +47,11 @@
         - curl
         - unzip
         - zip
+        # 运维监控工具等
+        - htop
+        - iotop
+        - nmon
+        # ruby相关
         - ruby-full
         #- ruby
         #- ruby-dev
