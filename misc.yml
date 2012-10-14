@@ -13,6 +13,8 @@
     gemLinkTarge: gem1.8
     #网易debian更新源配置文件
     163Repo: http://mirrors.163.com/.help/sources.list.squeeze
+    163BackportsRepo: "deb http://mirrors.163.com/debian-backports/ squeeze-backports main contrib non-free"
+    163BackportsSrcRepo: "deb-src http://mirrors.163.com/debian-backports/ squeeze-backports main contrib non-free"
   user: $user
 
   tasks:
@@ -29,10 +31,18 @@
     action: get_url url=$163Repo dest=/etc/apt/sources.list
     tags: repository
     only_if: "'${repoResult.stdout}'.find('mirrors.163.com') == -1"
+  - name: check backports repository
+    action: shell grep $163BackportsRepo /etc/apt/sources.list & /bin/true
+    register: backportsRepoResult
+    tags: repository
+  - name: add backports repository
+    action: shell echo $163BackportsRepo >> /etc/apt/sources.list && echo $163BackportsSrcRepo >> /etc/apt/sources.list
+    tags: repository
+    only_if: "'${backportsRepoResult.stdout}'.find('$163BackportsRepo') == -1"
   - name: refresh the repository
     action: shell apt-get update
     tags: repository
-    only_if: "'${repoResult.stdout}'.find('mirrors.163.com') == -1"
+    only_if: "'${repoResult.stdout}'.find('mirrors.163.com') == -1 or '${backportsRepoResult.stdout}'.find('$163BackportsRepo') == -1"
 
   # 确保git是最新版本
   - name: ensure git is at the latest version
