@@ -157,3 +157,8 @@
         - virtualenv
         - virtualenvwrapper
     tags: python
+
+  # java开发环境(安装包时会弹出窗口要求接受协议因而导致安装失败)
+  - name: ensure sun jdk6 is installed
+    action: apt pkg=sun-java6-jdk state=installed
+    tags: java
