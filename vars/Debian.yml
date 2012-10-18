@@ -1,0 +1,9 @@
+---
+#包管理器
+packageManager: apt
+#网易更新源配置文件
+163Repo: http://mirrors.163.com/.help/sources.list.squeeze
+163BackportsRepo: "deb http://mirrors.163.com/debian-backports/ squeeze-backports main contrib non-free"
+163BackportsSrcRepo: "deb-src http://mirrors.163.com/debian-backports/ squeeze-backports main contrib non-free"
+#基础软件包
+basePackages: ["make", "curl", "unzip", "zip", "htop", "iotop", "nmon", "ruby-full"]

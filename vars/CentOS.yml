@@ -1,0 +1,7 @@
+---
+#包管理器
+packageManager: yum
+#网易更新源配置文件
+163Repo: http://mirrors.163.com/.help/CentOS6-Base-163.repo
+#基础软件包
+basePackages: ["make", "curl", "unzip", "zip"]

@@ -1,6 +1,7 @@
 ---
 # ansible-playbook misc.yml --extra-vars "hosts=venus user=root"
 - hosts: $hosts
+  user: $user
   vars:
     #setuptools
     setuptoolsDownloadURL: http://pypi.python.org/packages/source/s/setuptools/
@@ -11,164 +12,176 @@
     gemFile: rubygems-1.8.24.zip
     gemFolder: rubygems-1.8.24
     gemLinkTarge: gem1.8
-    #网易debian更新源配置文件
-    163Repo: http://mirrors.163.com/.help/sources.list.squeeze
-    163BackportsRepo: "deb http://mirrors.163.com/debian-backports/ squeeze-backports main contrib non-free"
-    163BackportsSrcRepo: "deb-src http://mirrors.163.com/debian-backports/ squeeze-backports main contrib non-free"
-  user: $user
+    isCentOS: "'${ansible_distribution}' == 'CentOS'"
+    isDebian: "'${ansible_distribution}' == 'Debian'"
+  vars_files:
+    - ["vars/${ansible_distribution}.yml", "vars/defaultOS.yml"]
 
   tasks:
-  # 增加网易开源镜像为更新源
-  - name: check repository
-    action: shell grep mirrors.163.com /etc/apt/sources.list & /bin/true
-    register: repoResult
-    tags: repository
-  - name: backup current repository config
-    action: shell mv /etc/apt/sources.list /etc/apt/sources.list.bak
-    tags: repository
-    only_if: "'${repoResult.stdout}'.find('mirrors.163.com') == -1"
-  - name: download 163 repository config file
-    action: get_url url=$163Repo dest=/etc/apt/sources.list
-    tags: repository
-    only_if: "'${repoResult.stdout}'.find('mirrors.163.com') == -1"
-  - name: check backports repository
-    action: shell grep $163BackportsRepo /etc/apt/sources.list & /bin/true
-    register: backportsRepoResult
-    tags: repository
-  - name: add backports repository
-    action: shell echo $163BackportsRepo >> /etc/apt/sources.list && echo $163BackportsSrcRepo >> /etc/apt/sources.list
-    tags: repository
-    only_if: "'${backportsRepoResult.stdout}'.find('$163BackportsRepo') == -1"
-  - name: refresh the repository
-    action: shell apt-get update
-    tags: repository
-    only_if: "'${repoResult.stdout}'.find('mirrors.163.com') == -1 or '${backportsRepoResult.stdout}'.find('$163BackportsRepo') == -1"
 
-  # 确保git是最新版本
-  - name: ensure git is at the latest version
-    action: apt pkg=git state=latest
-    tags: git
+    # 增加网易开源镜像为更新源
+    # 如果是Debian
+    - name: check repository[Debian]
+      action: shell grep mirrors.163.com /etc/apt/sources.list & /bin/true
+      register: repoResult
+      tags: repository
+      only_if: $isDebian
+    - name: backup current repository config[Debian]
+      action: shell mv /etc/apt/sources.list /etc/apt/sources.list.bak
+      tags: repository
+      only_if: "$isDebian and '${repoResult.stdout}'.find('mirrors.163.com') == -1"
+    - name: download 163 repository config file[Debian]
+      action: get_url url=$163Repo dest=/etc/apt/sources.list
+      tags: repository
+      only_if: "$isDebian and '${repoResult.stdout}'.find('mirrors.163.com') == -1"
+    - name: check backports repository[Debian]
+      action: shell grep $163BackportsRepo /etc/apt/sources.list & /bin/true
+      register: backportsRepoResult
+      tags: repository
+      only_if: $isDebian
+    - name: add backports repository[Debian]
+      action: shell echo $163BackportsRepo >> /etc/apt/sources.list && echo $163BackportsSrcRepo >> /etc/apt/sources.list
+      tags: repository
+      only_if: "$isDebian and '${backportsRepoResult.stdout}'.find('$163BackportsRepo') == -1"
+    - name: refresh the repository[Debian]
+      action: shell apt-get update
+      tags: repository
+      only_if: "$isDebian and ('${repoResult.stdout}'.find('mirrors.163.com') == -1 or '${backportsRepoResult.stdout}'.find('$163BackportsRepo') == -1)"
 
-  # 安装一些基础软件包
-  - name: install basic packages
-    action: apt pkg=$item state=installed
-    with_items:
-        - make
-        - curl
-        - unzip
-        - zip
-        # 运维监控工具等
-        - htop
-        - iotop
-        - nmon
-        # ruby相关
-        - ruby-full
-        #- ruby
-        #- ruby-dev
-        #- libruby
-        #- rake
-    tags: setup
+    # CentOS
+    - name: check repository[CentOS]
+      action: shell grep mirrors.163.com /etc/yum.repos.d/CentOS-Base.repo & /bin/true
+      register: repoResult
+      tags: repository
+      only_if: $isCentOS
+    - name: backup current repository config[CentOS]
+      action: shell mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
+      tags: repository
+      only_if: "$isCentOS and '${repoResult.stdout}'.find('mirrors.163.com') == -1"
+    - name: download 163 repository config file[CentOS]
+      action: get_url url=$163Repo dest=/etc/yum.repos.d/CentOS-Base.repo
+      tags: repository
+      only_if: "$isCentOS and '${repoResult.stdout}'.find('mirrors.163.com') == -1"
 
-  - name: check whether gem is installed
-    action: shell which gem & /bin/true
-    register: gemResult
-    tags: setup
+    # 确保git是最新版本
+    - name: ensure git is at the latest version
+      action: $packageManager pkg=git state=latest
+      tags: git
 
-  - name: download gem
-    action: get_url url=$gemUrl dest=~/$gemFile thirsty=no
-    tags: setup
-    only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
+    # 安装一些基础软件包
+    - name: install basic packages
+      action: $packageManager pkg=$item state=installed
+      with_items: $basePackages
+      tags: setup
 
-  - name: exact gem
-    action: shell chdir=~ unzip -o $gemFile
-    tags: setup
-    only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
+    - name: check whether gem is installed
+      action: shell which gem & /bin/true
+      register: gemResult
+      tags: setup
 
-  - name: install gem
-    action: shell chidr=~/$gemFolder ruby ~/$gemFolder/setup.rb
-    tags: setup
-    only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
+    - name: download gem
+      action: get_url url=$gemUrl dest=~/$gemFile thirsty=no
+      tags: setup
+      only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
 
-  - name: link $gemLinkTarge to gem
-    action: shell ln -s /usr/bin/$gemLinkTarge /usr/bin/gem
-    tags: setup
-    only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
+    - name: exact gem
+      action: shell chdir=~ unzip -o $gemFile
+      tags: setup
+      only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
 
-  # 确保ohai已安装
-  - name: check whether ohai is installed
-    action: shell which ohai & /bin/true
-    register: ohaiResult
-    tags: setup
-  - name: ensure ohai is installed
-    action: shell gem source -a http://rubygems.org & gem install ohai
-    only_if: "'${ohaiResult.stdout}'.find('bin/ohai') == -1"
-    tags: setup
+    - name: install gem
+      action: shell chidr=~/$gemFolder ruby ~/$gemFolder/setup.rb
+      tags: setup
+      only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
 
-  # zshell安装配置
-  - name: ensure zsh is the latest
-    action: apt pkg=zsh state=latest
-    tags: zsh
-  - name: install oh-my-zsh
-    action: shell chdir=~ creates=.zshrc curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | sh & /bin/true
-    tags: zsh
-  - name: check plugins in oh-my-zsh
-    action: shell chdir=~ sed -n '/plugins=(git github pip virtualenvwrapper python ruby rails3)/p' .zshrc & /bin/true
-    register: ohMyZshResult
-    tags: zsh
-  - name: enable plugins in oh-my-zsh
-    action: shell chdir=~ sed -i 's/plugins=(git)/plugins=(git github pip virtualenvwrapper python ruby rails3)/' .zshrc
-    only_if: "'${ohMyZshResult.stdout}'.find('plugins=') == -1"
-    tags: zsh
+    - name: link $gemLinkTarge to gem
+      action: shell ln -s /usr/bin/$gemLinkTarge /usr/bin/gem
+      tags: setup
+      only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
 
-  # vim安装配置
-  - name: ensure vim is the latest
-    action: apt pkg=vim state=latest
-    tags: vim
-  - name: configure vim
-    action: shell chdir=~ creates=.vim/vimrc curl -L https://github.com/jhezjkp/dot-vimrc/raw/master/tools/install.sh | sh
-    tags: vim
+    # 确保ohai已安装
+    - name: check whether ohai is installed
+      action: shell which ohai & /bin/true
+      register: ohaiResult
+      tags: setup
+    - name: ensure ohai is installed
+      action: shell gem source -a http://rubygems.org & gem install ohai
+      only_if: "'${ohaiResult.stdout}'.find('bin/ohai') == -1"
+      tags: setup
 
-  # 安装easy_install
-  - name: check whether easy_install is installed
-    action: shell which easy_install & /bin/true
-    register: easy_installResult
-    tags: python
-  - name: download easy_install
-    action: command wget ${setuptoolsDownloadURL}${setuptoolsFile}
-    only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
-    tags: python
-  - name: exact easy_install
-    action: command tar -zxvf ${setuptoolsFile}
-    only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
-    tags: python
-  - name: install easy_install
-    action: command chdir=~/${setuptoolsExactFolder} python setup.py install
-    only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
-    tags: python
-  - name: clean downloaded files
-    action: command chdir=~ rm ${setuptoolsFile}
-    only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
-    tags: python
+    # zshell安装配置
+    - name: ensure zsh is the latest
+      action: $packageManager pkg=zsh state=latest
+      tags: zsh
+    - name: install oh-my-zsh
+      action: shell chdir=~ creates=.zshrc curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | sh & /bin/true
+      tags: zsh
+    - name: check plugins in oh-my-zsh
+      action: shell chdir=~ sed -n '/plugins=(git github pip virtualenvwrapper python ruby rails3)/p' .zshrc & /bin/true
+      register: ohMyZshResult
+      tags: zsh
+    - name: enable plugins in oh-my-zsh
+      action: shell chdir=~ sed -i 's/plugins=(git)/plugins=(git github pip virtualenvwrapper python ruby rails3)/' .zshrc
+      only_if: "'${ohMyZshResult.stdout}'.find('plugins=') == -1"
+      tags: zsh
 
-  # 安装pip
-  - name: check whether pip installed
-    action: shell which pip & /bin/true
-    register: pipResult
-    tags: python
-  - name: install pip
-    action: easy_install name=pip
-    only_if: "'${pipResult.stdout}'.find('bin/pip') == -1"
-    tags: python
+    # vim安装配置
+    - name: ensure vim is the latest
+      action: $packageManager pkg=vim state=latest
+      tags: vim
+    - name: configure vim
+      action: shell chdir=~ creates=.vim/vimrc curl -L https://github.com/jhezjkp/dot-vimrc/raw/master/tools/install.sh | sh
+      tags: vim
 
-  # 安装vitualenv和virtualenvwrapper
-  - name: ensure virtualenv and virtualenvwrapper is installed
-    action: easy_install name=$item
-    with_items:
-        - virtualenv
-        - virtualenvwrapper
-    tags: python
+    # 安装easy_install
+    - name: check whether easy_install is installed
+      action: shell which easy_install & /bin/true
+      register: easy_installResult
+      tags: python
+    - name: download easy_install
+      action: command wget ${setuptoolsDownloadURL}${setuptoolsFile}
+      only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
+      tags: python
+    - name: exact easy_install
+      action: command tar -zxvf ${setuptoolsFile}
+      only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
+      tags: python
+    - name: install easy_install
+      action: command chdir=~/${setuptoolsExactFolder} python setup.py install
+      only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
+      tags: python
+    - name: clean downloaded files
+      action: command chdir=~ rm ${setuptoolsFile}
+      only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
+      tags: python
 
-  # java开发环境(安装包时会弹出窗口要求接受协议因而导致安装失败)
-  - name: ensure sun jdk6 is installed
-    action: apt pkg=sun-java6-jdk state=installed
-    tags: java
+    # 安装pip
+    - name: check whether pip installed
+      action: shell which pip & /bin/true
+      register: pipResult
+      tags: python
+    - name: install pip
+      action: easy_install name=pip
+      only_if: "'${pipResult.stdout}'.find('bin/pip') == -1"
+      tags: python
+
+    # 安装vitualenv和virtualenvwrapper
+    - name: ensure virtualenv and virtualenvwrapper is installed
+      action: easy_install name=$item
+      with_items:
+          - virtualenv
+          - virtualenvwrapper
+      tags: python
+
+    # java开发环境(安装包时会弹出窗口要求接受协议因而导致安装失败)
+    - name: ensure sun jdk6 is installed
+      action: $packageManager pkg=sun-java6-jdk state=installed
+      tags: java
+    #- include: playbooks/${facter_operatingsystem}_startup.yml
+    #- include: "playbooks/$ansible_distribution_startup.yml"
+    #- include: "playbooks/$facter_operatingsystem_startup.yml"
+    - name: test
+      action: shell echo $facter_operatingsystem > test && echo $ansible_distribution >> test
+    #- include: "playbooks/${os}_startup.yml"
+    - name: test2
+      action: $packageManager pkg=git state=latest
