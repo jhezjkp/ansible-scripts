@@ -14,54 +14,13 @@
     gemLinkTarge: gem1.8
     isCentOS: "'${ansible_distribution}' == 'CentOS'"
     isDebian: "'${ansible_distribution}' == 'Debian'"
-  vars_files:
-    - ["vars/${ansible_distribution}.yml", "vars/defaultOS.yml"]
+    isUbuntu: "'${ansible_distribution}' == 'Ubuntu'"
+  vars_files: vars/${ansible_distribution}.yml
 
   tasks:
 
     # 增加网易开源镜像为更新源
-    # 如果是Debian
-    - name: check repository[Debian]
-      action: shell grep mirrors.163.com /etc/apt/sources.list & /bin/true
-      register: repoResult
-      tags: repository
-      only_if: $isDebian
-    - name: backup current repository config[Debian]
-      action: shell mv /etc/apt/sources.list /etc/apt/sources.list.bak
-      tags: repository
-      only_if: "$isDebian and '${repoResult.stdout}'.find('mirrors.163.com') == -1"
-    - name: download 163 repository config file[Debian]
-      action: get_url url=$163Repo dest=/etc/apt/sources.list
-      tags: repository
-      only_if: "$isDebian and '${repoResult.stdout}'.find('mirrors.163.com') == -1"
-    - name: check backports repository[Debian]
-      action: shell grep $163BackportsRepo /etc/apt/sources.list & /bin/true
-      register: backportsRepoResult
-      tags: repository
-      only_if: $isDebian
-    - name: add backports repository[Debian]
-      action: shell echo $163BackportsRepo >> /etc/apt/sources.list && echo $163BackportsSrcRepo >> /etc/apt/sources.list
-      tags: repository
-      only_if: "$isDebian and '${backportsRepoResult.stdout}'.find('$163BackportsRepo') == -1"
-    - name: refresh the repository[Debian]
-      action: shell apt-get update
-      tags: repository
-      only_if: "$isDebian and ('${repoResult.stdout}'.find('mirrors.163.com') == -1 or '${backportsRepoResult.stdout}'.find('$163BackportsRepo') == -1)"
-
-    # CentOS
-    - name: check repository[CentOS]
-      action: shell grep mirrors.163.com /etc/yum.repos.d/CentOS-Base.repo & /bin/true
-      register: repoResult
-      tags: repository
-      only_if: $isCentOS
-    - name: backup current repository config[CentOS]
-      action: shell mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
-      tags: repository
-      only_if: "$isCentOS and '${repoResult.stdout}'.find('mirrors.163.com') == -1"
-    - name: download 163 repository config file[CentOS]
-      action: get_url url=$163Repo dest=/etc/yum.repos.d/CentOS-Base.repo
-      tags: repository
-      only_if: "$isCentOS and '${repoResult.stdout}'.find('mirrors.163.com') == -1"
+    - include: playbooks/repository.yml
 
     # 确保git是最新版本
     - name: ensure git is at the latest version
@@ -97,7 +56,7 @@
     - name: link $gemLinkTarge to gem
       action: shell ln -s /usr/bin/$gemLinkTarge /usr/bin/gem
       tags: setup
-      only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
+      only_if: "not $isCentOS and '${gemResult.stdout}'.find('bin/gem') == -1"
 
     # 确保ohai已安装
     - name: check whether ohai is installed
@@ -174,14 +133,6 @@
       tags: python
 
     # java开发环境(安装包时会弹出窗口要求接受协议因而导致安装失败)
-    - name: ensure sun jdk6 is installed
-      action: $packageManager pkg=sun-java6-jdk state=installed
-      tags: java
-    #- include: playbooks/${facter_operatingsystem}_startup.yml
-    #- include: "playbooks/$ansible_distribution_startup.yml"
-    #- include: "playbooks/$facter_operatingsystem_startup.yml"
-    - name: test
-      action: shell echo $facter_operatingsystem > test && echo $ansible_distribution >> test
-    #- include: "playbooks/${os}_startup.yml"
-    - name: test2
-      action: $packageManager pkg=git state=latest
+    #- name: ensure sun jdk6 is installed
+    #  action: $packageManager pkg=sun-java6-jdk state=installed
+    #  tags: java

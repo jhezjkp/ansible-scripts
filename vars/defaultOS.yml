@@ -1,5 +1,0 @@
----
-#包管理器
-packageManager: yum
-#基础软件包
-basePackages: ["make", "curl", "unzip", "zip", "htop", "iotop", "nmon", "ruby-full"]

@@ -1,0 +1,16 @@
+---
+# 更新源设置
+- name: check repository
+  action: shell grep mirrors.163.com ${repoConfig} & /bin/true
+  register: repoResult
+  tags: repository
+
+- name: replace default repository with 163 repository
+  action: template src=templates/repository.j2 dest=${repoConfig} backup=yes
+  tags: repository
+  only_if: "'${repoResult.stdout}'.find('mirrors.163.com') == -1"
+
+- name: refresh the repository
+  action: shell apt-get update
+  tags: repository
+  only_if: "(${isDebian} or ${isUbuntu}) and '${repoResult.stdout}'.find('mirrors.163.com') == -1"
