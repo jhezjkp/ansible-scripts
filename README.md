@@ -3,6 +3,12 @@ ansible-scripts
 
 scripts for ansible.
 
+the scripts are tested under these distributions:
+
++ CentOS
++ Debian
++ Ubuntu
+
 
 
 tips
@@ -22,4 +28,6 @@ run the commands below to set the environment and the reactive the virtualenv:
 	$ deactivate
 	$ workon ansible-scripts
 	
-__note__: it seems there will be something wrong with the ansible module if you install ansible under an virtualenv….. so, install ansible normally at present time until it solve this problem.
+__note__:
+
+it seems there will be something wrong with the ansible module if you install ansible under an virtualenv….. so, install ansible normally at present time until it solve this problem.
