@@ -1,0 +1,12 @@
+---
+# python环境配置
+- name: install python base packages
+  action: ${packageManager} pkg=${item} state=installed
+  with_items: ${pythonPackages}
+  tags: python
+
+# 安装vitualenv和virtualenvwrapper
+- name: install some neccessary python libs
+  action: easy_install name=$item
+  with_items: ${pythonLibs}
+  tags: python

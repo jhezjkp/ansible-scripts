@@ -3,19 +3,11 @@
 - hosts: $hosts
   user: $user
   vars:
-    #setuptools
-    setuptoolsDownloadURL: http://pypi.python.org/packages/source/s/setuptools/
-    setuptoolsFile: setuptools-0.6c11.tar.gz
-    setuptoolsExactFolder: setuptools-0.6c11
-    #gem
-    gemUrl: http://rubyforge.org/frs/download.php/76072/rubygems-1.8.24.zip
-    gemFile: rubygems-1.8.24.zip
-    gemFolder: rubygems-1.8.24
-    gemLinkTarge: gem1.8
     isCentOS: "'${ansible_distribution}' == 'CentOS'"
     isDebian: "'${ansible_distribution}' == 'Debian'"
     isUbuntu: "'${ansible_distribution}' == 'Ubuntu'"
-  vars_files: vars/${ansible_distribution}.yml
+  vars_files: 
+    - vars/${ansible_distribution}.yml
 
   tasks:
 
@@ -31,41 +23,6 @@
     - name: install basic packages
       action: $packageManager pkg=$item state=installed
       with_items: $basePackages
-      tags: setup
-
-    - name: check whether gem is installed
-      action: shell which gem & /bin/true
-      register: gemResult
-      tags: setup
-
-    - name: download gem
-      action: get_url url=$gemUrl dest=~/$gemFile thirsty=no
-      tags: setup
-      only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
-
-    - name: exact gem
-      action: shell chdir=~ unzip -o $gemFile
-      tags: setup
-      only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
-
-    - name: install gem
-      action: shell chidr=~/$gemFolder ruby ~/$gemFolder/setup.rb
-      tags: setup
-      only_if: "'${gemResult.stdout}'.find('bin/gem') == -1"
-
-    - name: link $gemLinkTarge to gem
-      action: shell ln -s /usr/bin/$gemLinkTarge /usr/bin/gem
-      tags: setup
-      only_if: "not $isCentOS and '${gemResult.stdout}'.find('bin/gem') == -1"
-
-    # 确保ohai已安装
-    - name: check whether ohai is installed
-      action: shell which ohai & /bin/true
-      register: ohaiResult
-      tags: setup
-    - name: ensure ohai is installed
-      action: shell gem source -a http://rubygems.org & gem install ohai
-      only_if: "'${ohaiResult.stdout}'.find('bin/ohai') == -1"
       tags: setup
 
     # zshell安装配置
@@ -92,45 +49,11 @@
       action: shell chdir=~ creates=.vim/vimrc curl -L https://github.com/jhezjkp/dot-vimrc/raw/master/tools/install.sh | sh
       tags: vim
 
-    # 安装easy_install
-    - name: check whether easy_install is installed
-      action: shell which easy_install & /bin/true
-      register: easy_installResult
-      tags: python
-    - name: download easy_install
-      action: command wget ${setuptoolsDownloadURL}${setuptoolsFile}
-      only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
-      tags: python
-    - name: exact easy_install
-      action: command tar -zxvf ${setuptoolsFile}
-      only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
-      tags: python
-    - name: install easy_install
-      action: command chdir=~/${setuptoolsExactFolder} python setup.py install
-      only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
-      tags: python
-    - name: clean downloaded files
-      action: command chdir=~ rm ${setuptoolsFile}
-      only_if: "'${easy_installResult.stdout}'.find('bin/easy_install') == -1"
-      tags: python
+    # python环境
+    - include: playbooks/python.yml
 
-    # 安装pip
-    - name: check whether pip installed
-      action: shell which pip & /bin/true
-      register: pipResult
-      tags: python
-    - name: install pip
-      action: easy_install name=pip
-      only_if: "'${pipResult.stdout}'.find('bin/pip') == -1"
-      tags: python
-
-    # 安装vitualenv和virtualenvwrapper
-    - name: ensure virtualenv and virtualenvwrapper is installed
-      action: easy_install name=$item
-      with_items:
-          - virtualenv
-          - virtualenvwrapper
-      tags: python
+    # ruby环境
+    - include: playbooks/ruby.yml
 
     # java开发环境(安装包时会弹出窗口要求接受协议因而导致安装失败)
     #- name: ensure sun jdk6 is installed

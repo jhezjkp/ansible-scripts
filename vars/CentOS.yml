@@ -4,4 +4,10 @@ packageManager: yum
 #更新源配置文件
 repoConfig: /etc/yum.repos.d/CentOS-Base.repo
 #基础软件包
-basePackages: ["gcc", "make", "curl", "unzip", "zip", "ruby", "libruby", "ruby-devel"]
+basePackages: ["gcc", "make", "curl", "unzip", "zip"]
+#python相关软件包
+pythonPackages: ["python-setuptools"]
+#一些必要的python库
+pythonLibs: ["pip", "virtualenv", "virtualenvwrapper"]
+#ruby相关软件包
+rubyPackages: ["ruby", "libruby", "ruby-devel", "rubygems"]

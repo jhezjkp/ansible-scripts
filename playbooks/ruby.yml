@@ -1,0 +1,16 @@
+---
+# ruby环境配置
+- name: install ruby base packages
+  action: ${packageManager} pkg=${item} state=installed
+  with_items: ${rubyPackages}
+  tags: ruby
+
+# 确保ohai已安装
+- name: check whether ohai is installed
+  action: shell which ohai & /bin/true
+  register: ohaiResult
+  tags: ruby
+- name: ensure ohai is installed
+  action: shell gem source -r http://rubygems.org && gem source -a http://ruby.taobao.org && gem install ohai
+  only_if: "'${ohaiResult.stdout}'.find('bin/ohai') == -1"
+  tags: ruby
