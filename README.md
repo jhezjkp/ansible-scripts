@@ -28,6 +28,10 @@ run the commands below to set the environment and the reactive the virtualenv:
 	$ deactivate
 	$ workon ansible-scripts
 	
+execute the script on local machine:
+
+	$ ansible-playbook misc.yml --extra-vars "hosts=all user=vagrant" --connection=local
+	
 __note__:
 
 it seems there will be something wrong with the ansible module if you install ansible under an virtualenv….. so, install ansible normally at present time until it solve this problem.
