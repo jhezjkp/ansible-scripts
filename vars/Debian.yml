@@ -1,13 +1,5 @@
 ---
-#包管理器
-packageManager: apt
-#更新源配置文件
-repoConfig: /etc/apt/sources.list
-#基础软件包
-basePackages: ["make", "curl", "unzip", "zip", "htop", "iotop", "nmon"]
-#python相关软件包
-pythonPackages: ["python-setuptools", "python-pip"]
-#一些必要的python库
-pythonLibs: ["virtualenv", "virtualenvwrapper"]
-#ruby相关软件包
-rubyPackages: ["build-essential", "bison", "openssl", "libreadline6", "libreadline6-dev", "zlib1g", "zlib1g-dev", "libssl-dev", "libyaml-dev", "libsqlite3-0", "libsqlite3-dev", "sqlite3", "libxml2-dev", "autoconf", "libc6-dev", "xclip", "ruby-full", "rubygems"]
+#Debian系列操作系统变量定义文件，Ubuntu包含在内
+
+#service names
+service_sshd: ssh

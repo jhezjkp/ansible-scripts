@@ -1,13 +1,2 @@
 ---
-#包管理器
-packageManager: apt
-#更新源配置文件
-repoConfig: /etc/apt/sources.list
-#基础软件包
-basePackages: ["make", "curl", "unzip", "zip", "htop", "iotop", "nmon"]
-#python相关软件包
-pythonPackages: ["python-setuptools", "python-pip"]
-#一些必要的python库
-pythonLibs: ["virtualenv", "virtualenvwrapper"]
-#ruby相关软件包
-rubyPackages: ["ruby-full", "rubygems"]
+#Debian系列操作系统Ubuntu发行版本变量定义文件

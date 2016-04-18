@@ -1,33 +1,29 @@
-ansible-scripts
-===============
+#ansible-scripts
 
-scripts for ansible.
-
-the scripts are tested under these distributions:
-
-+ CentOS
-+ Debian
-+ Ubuntu
+---
++ ssh.yml:
+ + 证书登录设置
+ + 变更ssh端口(默认22)
+ + 变更是否允许密码登录(默认禁止)
 
 
+---
+##运行说明
 
-tips
-===============
-use virtualenv and virtualenvwrapper to manage the packages:
+运行脚本的命令：
 
-	$ git clone git@github.com:jhezjkp/ansible-scripts.git
-	$ cd ansible-scripts
-	$ pip install virtualenv virtualenvwrapper
-	$ mkvirtualenv ansible-scripts
-	$ pip install -r requirements.txt
+```
+ansible-playbook <playbook> --extra-var="hosts=<目标主机>"
+```
 
+如：
 
-run the commands below to set the environment and the reactive the virtualenv:
+```
+ansible-playbook ssh.yml --extra-var="hosts=all"
+```
 
-	$ echo "export ANSIBLE_HOSTS=~/.ansible_hosts" >> ~/.virtualenvs/ansible-scripts/bin/postactivate
-	$ deactivate
-	$ workon ansible-scripts
-	
-__note__:
+Debian或Ubuntu需要root权限时请加上"-K"参数，如：
 
-it seems there will be something wrong with the ansible module if you install ansible under an virtualenv….. so, install ansible normally at present time until it solve this problem.
+```
+ansible-playbook ssh.yml --extra-var="hosts=all"
+```

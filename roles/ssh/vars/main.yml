@@ -1,0 +1,7 @@
+---
+#ssh公钥
+ssh_pub_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQC54zsc1JqA3eozpRFO6rvukZZD2J+Dg4LDoErLcHYuE9kPUiiS27paQ63PKB/aIPj2dnBg6tF+/Itf5+W/63b4vGg0DYTGtOH/iltrObG9ZiZw8UTh6VF4Daf+ng/vbQib8vnbYE6nJoRjF28goSyXpGa5mzKnTM2iivitsR8nMw==
+#ssh监听端口
+ssh_port: 22
+#是否允许密码登录
+allow_password_auth: "no"

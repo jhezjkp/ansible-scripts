@@ -1,0 +1,5 @@
+---
+#通用系统变量定义文件，以RedHat系统为基准，有差异的配置在各自的系统变量配置文件中
+
+#service names
+service_sshd: sshd
