@@ -27,3 +27,5 @@ Debian或Ubuntu需要root权限时请加上"-K"参数，如：
 ```
 ansible-playbook ssh.yml --extra-var="hosts=all"
 ```
+	
+
