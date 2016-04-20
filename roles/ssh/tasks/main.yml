@@ -5,19 +5,18 @@
   authorized_key: user={{ansible_ssh_user}} key="{{ssh_pub_key}}"
   tags: ssh
 
-- name: change ssh port to {{ ssh_port }} 
-  #become: yes when ansible_os_family == "Debian" or ansible_os_family == "Ubuntu"
+- block:
+  - name: change ssh port to {{ ssh_port }} 
+    lineinfile: dest=/etc/ssh/sshd_config backup=yes regexp=^Port line='Port {{ ssh_port }}'
+    notify:
+      - restart ssh
+
+  - name: change allow password login setting to {{ allow_password_auth}}
+    lineinfile: dest=/etc/ssh/sshd_config backup=yes regexp=^PasswordAuthentication line='PasswordAuthentication {{ allow_password_auth }}'
+    notify:
+      - restart ssh
   become: yes
   #become_method: sudo
-  lineinfile: dest=/etc/ssh/sshd_config backup=yes regexp=^Port line='Port {{ ssh_port }}'
-  notify:
-    - restart ssh
-
-- name: change allow password login setting to {{ allow_password_auth}}
-  become: yes
-  lineinfile: dest=/etc/ssh/sshd_config backup=yes regexp=^PasswordAuthentication line='PasswordAuthentication {{ allow_password_auth }}'
-  notify:
-    - restart ssh
 
 
     
