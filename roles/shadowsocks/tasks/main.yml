@@ -1,0 +1,44 @@
+---
+
+- name: dowload shadowsocks-libev
+  unarchive:
+    src: https://github.com/shadowsocks/shadowsocks-libev/archive/master.zip
+    copy: no
+    dest: /tmp
+
+- block:
+  
+  - name: install required softwares
+    package: name={{item}}
+    with_items:
+      - make
+      - gcc
+      - zlib1g-dev
+      - libssl-dev
+      - daemon
+
+  - name: compile and install shadowsocks
+    shell: ./configure && make && make install
+    args:
+      chdir: /tmp/shadowsocks-libev-master
+
+  - name: create shadowsocks configure directory
+    file: path=/etc/shadowsocks-libev state=directory
+
+  - name: configure shadowsocks
+    template:
+      src: config.json.j2
+      dest: /etc/shadowsocks-libev/config.json
+
+  - name: get ss-server bin path
+    shell: which ss-server
+    register: ss_server_path
+
+  - name: setup startup on boot
+    lineinfile: dest=/etc/rc.local line='{{ss_server_path.stdout}}' insertbefore='^exit' state=present
+
+  - name: start shadowsocks
+    shell: daemon -o /etc/shadowsocks-libev/stdout.log -- {{ss_server_path.stdout}} 
+
+  become: yes
+  #when: "{{ansible_os_family == 'Debian'}}"
