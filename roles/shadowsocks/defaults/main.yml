@@ -1,10 +1,11 @@
 ---
 #服务端监听端口
 server_port: 8888
-#本地端口
-local_port: 8387
 #加密方法
 method: aes-256-cfb
 #连接密码
 password: iovp@!~
-
+#本地端口
+local_port: 8387
+#服务名称
+service_name: shadowsocks

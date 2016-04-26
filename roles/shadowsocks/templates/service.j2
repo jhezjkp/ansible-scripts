@@ -1,0 +1,76 @@
+#!/bin/bash
+#
+# chkconfig: 35 90 12
+# description: {{service_name}}
+#
+# Get function from functions library
+{% if ansible_os_family == 'RedHat' %}
+. /etc/init.d/functions
+{% elif ansible_os_family == 'Debian' %}
+. /lib/lsb/init-functions
+{% else %}
+{% endif %}
+
+BIN={{bin_path}}
+BIN_OPTS={{bin_opts}}
+PIDFILE=/var/run/{{service_name}}.pid
+LOGFILE=/var/log/{{service_name}}.log
+
+# Start the service {{service_name}}
+start() {
+        printf "starting {{service_name}}\n"
+        PID=`$BIN $BIN_OPTS > $LOGFILE 2>&1 & echo $!`
+        #echo "saving PID" $PID " to " $PIDFILE
+        if [ -z $PID ]; then
+            printf "{{service_name}} start fail\n"
+        else
+            echo $PID > $PIDFILE
+            printf "{{service_name}} start success\n"
+        fi
+}
+# Stop the service {{service_name}}
+stop() {
+        if [ -f $PIDFILE ]; then
+            PID=`cat $PIDFILE`
+            printf "stopping {{service_name}}\n"
+            kill -HUP $PID
+            printf "{{service_name}} is stopped\n"
+            rm -f $PIDFILE
+        else
+            printf "{{service_name}} is stopped\n"
+        fi
+}
+{% if ansible_os_family == 'Debian' %}
+status() {
+        if [ -f $PIDFILE ]; then
+            PID=`cat $PIDFILE`
+            if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+                printf "{{service_name}} process dead but pidfile exists\n"
+            else
+                printf "{{service_name}} is running\n"
+            fi
+        else
+            printf "{{service_name}} is not running\n"
+        fi
+}
+{% endif %} 
+### main logic ###
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  status)
+        status {{service_name}}
+        ;;
+  restart|reload|condrestart)
+        stop
+        start
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|restart|reload|status}"
+        exit 1
+esac
+exit 0

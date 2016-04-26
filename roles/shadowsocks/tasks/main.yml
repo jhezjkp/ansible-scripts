@@ -8,7 +8,7 @@
 
 - block:
   
-  - name: install required softwares
+  - name: install required softwares [debian/ubuntu]
     package: name={{item}}
     with_items:
       - make
@@ -16,6 +16,16 @@
       - zlib1g-dev
       - libssl-dev
       - daemon
+    when: "{{ansible_os_family == 'Debian'}}"
+
+  - name: install required softwares [rhel/centos]
+    yum: name={{item}} state=present
+    with_items:
+      - make
+      - gcc
+      - zlib-devel
+      - openssl-devel
+    when: "{{ansible_os_family == 'RedHat'}}"
 
   - name: compile and install shadowsocks
     shell: ./configure && make && make install
@@ -31,14 +41,20 @@
       dest: /etc/shadowsocks-libev/config.json
 
   - name: get ss-server bin path
-    shell: which ss-server
+    shell: PATH=$PATH:/usr/local/bin && which ss-server
     register: ss_server_path
 
-  - name: setup startup on boot
-    lineinfile: dest=/etc/rc.local line='{{ss_server_path.stdout}}' insertbefore='^exit' state=present
+  - name: setup shadowsock service
+    template:
+      src: service.j2
+      dest: "/etc/init.d/{{service_name}}"
+      mode: 0744
+      force: no
+    vars:
+      bin_path: "{{ss_server_path.stdout}}"
+      bin_opts: ""
 
-  - name: start shadowsocks
-    shell: daemon -o /etc/shadowsocks-libev/stdout.log -- {{ss_server_path.stdout}} 
-
+  - name: set shadowsock service start on boot and start it right now
+    service: name={{service_name}} enabled=yes state=started
+  
   become: yes
-  #when: "{{ansible_os_family == 'Debian'}}"

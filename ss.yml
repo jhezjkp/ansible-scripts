@@ -1,5 +1,5 @@
 ---
 
-- hosts: jupiter
+- hosts: gce
   roles:
     - shadowsocks
