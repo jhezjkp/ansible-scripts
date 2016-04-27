@@ -1,0 +1,43 @@
+---
+#下载安装jdk
+
+- name: check if jdk is installed
+  command: "bash -lc 'java -version'"
+  register: jdk_status
+  ignore_errors: yes
+
+- block:
+  - include: assemble_download_url.yml
+
+  - name: download jdk {{jdk_version}} to {{download_path}}
+    get_url:
+      url: "{{jdk_download_url}}"
+      headers: "Cookie:oraclelicense=accept-securebackup-cookie"
+      dest: "{{download_path}}"
+
+  - block:
+    - name: create installation path {{install_path}}
+      file:
+        path: "{{install_path}}"
+        state: directory
+
+    - name: unarchive {{jdk_download_file}}
+      unarchive: 
+        src: "{{download_path}}/{{jdk_download_file}}"
+        dest: "{{install_path}}"
+        copy: no
+
+    - name: setup java environment parameters
+      lineinfile: dest=/etc/profile line={{item}} state=present
+      #debug: msg="java_home={{install_path}}/jdk1.{{java_version}}.0_{{java_subversion}}"
+      with_items:
+        - "JAVA_HOME={{install_path}}/jdk1.{{java_version}}.0_{{java_subversion}}"
+        - "PATH=$PATH:$JAVA_HOME/bin"
+        - "export JAVA_HOME"
+        - "export PATH"
+    become: yes
+  when: "{{jdk_status.stderr.find('java version')==-1}}"
+
+- name: mission abort report
+  debug: msg="Jdk has already installed on target machine!"
+  when: "{{jdk_status.stderr.find('java version')>-1}}"

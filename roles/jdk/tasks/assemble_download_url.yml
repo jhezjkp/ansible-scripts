@@ -1,0 +1,77 @@
+---
+# 根据用户选择的jdk版本号和系统架构组装下载url等
+# 参考页面：http://www.oracle.com/technetwork/java/archive-139210.html
+
+# 设置内部版本号
+- name: set general java internal version
+  set_fact:
+    jdk_version: "1.{{java_version}}.0_{{java_subversion}}"
+
+# 系统架构
+- name: set java architecture base on system architecture
+  set_fact:
+    jdk_arch: "{{ 'i586' if ansible_architecture == 'i386' else 'x64'}}"
+
+# 细版本
+- name: set general java internal detail version
+  set_fact:
+    jdk_version_detail: "{{java_version}}u{{java_subversion}}-b13"
+  when: java_version == 8 and java_subversion == 31
+
+- name: set general java internal detail version
+  set_fact:
+    jdk_version_detail: "{{java_version}}u{{java_subversion}}-b14"
+  when: java_version == 8 and java_subversion == 45
+
+- name: set general java internal detail version
+  set_fact:
+    jdk_version_detail: "{{java_version}}u{{java_subversion}}-b16"
+  when: java_version == 8 and java_subversion == 51
+
+- name: set general java internal detail version
+  set_fact:
+    jdk_version_detail: "{{java_version}}u{{java_subversion}}-b27"
+  when: java_version == 8 and java_subversion == 60
+
+- name: set general java internal detail version
+  set_fact:
+    jdk_version_detail: "{{java_version}}u{{java_subversion}}-b17"
+  when: java_version == 8 and java_subversion >= 65 and java_subversion <= 66
+
+- name: set general java internal detail version
+  set_fact:
+    jdk_version_detail: "{{java_version}}u{{java_subversion}}-b15"
+  when: java_version == 8 and java_subversion == 72
+
+- name: set general java internal detail version
+  set_fact:
+    jdk_version_detail: "{{java_version}}u{{java_subversion}}-b02"
+  when: java_version == 8 and java_subversion >= 73 and java_subversion <= 74 
+
+- name: set general java internal detail version
+  set_fact:
+    jdk_version_detail: "{{java_version}}u{{java_subversion}}-b13"
+  when: java_version == 8 and java_subversion == 75
+
+- name: set general java internal detail version
+  set_fact:
+    jdk_version_detail: "{{java_version}}u{{java_subversion}}-b03"
+  when: java_version == 8 and java_subversion == 77
+
+- name: set general java internal detail version
+  set_fact:
+    jdk_version_detail: "{{java_version}}u{{java_subversion}}-b14"
+  when: java_version == 8 and java_subversion >= 91
+
+# 组装下载文件名
+- name: assemble download file name
+  set_fact:
+    jdk_download_file: "jdk-{{java_version}}u{{java_subversion}}-{{ansible_system | lower}}-{{jdk_arch}}.tar.gz"
+
+# 组装下载地址
+- name: assemble download url
+  set_fact:
+    jdk_download_url: "http://download.oracle.com/otn-pub/java/jdk/{{jdk_version_detail}}/{{jdk_download_file}}"
+
+#- name: show version
+#  debug: msg="{{jdk_version_detail}} {{jdk_download_file}} {{jdk_download_url}}"

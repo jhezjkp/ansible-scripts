@@ -1,0 +1,5 @@
+---
+
+- hosts: gce
+  roles:
+    - { role: jdk, java_version: 8, java_subversion: 92 }

@@ -1,0 +1,11 @@
+---
+#jdk安装相关变量
+
+#jdk主版本、次版本号
+java_version: 8
+java_subversion: 92
+#下载路径
+download_path: /tmp
+#安装路径
+install_path: /usr/local/java
+
