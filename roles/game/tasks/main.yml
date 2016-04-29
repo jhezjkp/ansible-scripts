@@ -38,5 +38,20 @@
     chdir: "{{ansible_env.HOME}}/game{{server_id}}"
   tags: stop
 
+- name: verify game{{server_id}}
+  stat: path="{{ansible_env.HOME}}/game{{server_id}}/EchoServer.class"
+  register: st
+  tags: verify
+
+- name: verify result for game{{server_id}}
+  debug: msg="{{st.stat.md5}}"
+  tags: verify
+
+- name: automatic verify
+  #assert: { that: "st.stat.md5 == md5"}
+  #when: md5 is defined
+  fail: msg="game{{server_id}} md5 not match!"
+  when: st.stat.md5 != md5
+  tags: verify
 
 
