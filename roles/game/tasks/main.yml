@@ -1,0 +1,17 @@
+---
+
+- name: sync game{{SERVER_ID}} files
+  synchronize: 
+    src: "{{local_path}}/" 
+    dest: "{{ansible_env.HOME}}/game{{SERVER_ID}}"
+    rsync_opts:
+      - "--exclude={{ignore_path}}"
+
+- name: start game{{SERVER_ID}}
+  shell: "source /etc/profile && {{ansible_env.HOME}}/game{{SERVER_ID}}/run.sh -g start"
+  args:
+    chdir: "{{ansible_env.HOME}}/game{{SERVER_ID}}"
+  async: 5
+  poll: 0
+
+
