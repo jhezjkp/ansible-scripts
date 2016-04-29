@@ -1,5 +1,8 @@
 ---
 #要部署的游戏的本地路径
 local_path: ~/game/
-#要忽略的路径
-ignore_path: logs
+#要忽略的路径/文件
+ignores:
+  - logs
+  - config.properties
+  - "*.java"
