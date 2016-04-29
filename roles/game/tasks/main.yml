@@ -1,39 +1,41 @@
 ---
 
-- name: sync game{{SERVER_ID}} files
+- name: sync game{{server_id}} files
   synchronize: 
     src: "{{local_path}}/" 
-    dest: "{{ansible_env.HOME}}/game{{SERVER_ID}}"
+    dest: "{{ansible_env.HOME}}/game{{server_id}}"
     rsync_opts: 
       - "--exclude={{ignores | join(' --exclude=')}}" 
   tags:
     - deploy
     - update
 
-- name: debug
-  debug: msg="--exclude={{ignores | join(' --exclude=')}}"
-  tags: debug
-
 - name: generate configuration
   template:
     src: config.properties.j2
-    dest: "{{ansible_env.HOME}}/game{{SERVER_ID}}/config.properties"
+    dest: "{{ansible_env.HOME}}/game{{server_id}}/config.properties"
   tags:
     - deploy
     - update
 
-- name: start game{{SERVER_ID}}
-  shell: "source /etc/profile && {{ansible_env.HOME}}/game{{SERVER_ID}}/run.sh -g start"
+- name: start game{{server_id}}
+  shell: ". /etc/profile && {{ansible_env.HOME}}/game{{server_id}}/run.sh -g start"
   args:
-    chdir: "{{ansible_env.HOME}}/game{{SERVER_ID}}"
+    chdir: "{{ansible_env.HOME}}/game{{server_id}}"
   async: 5
-  poll: 0
+  poll: 1
+  register: start_result
   tags: start
 
-- name: stop game{{SERVER_ID}}
-  shell: "{{ansible_env.HOME}}/game{{SERVER_ID}}/run.sh -g stop"
+- name: start game{{server_id}} result
+  debug: msg="{{lookup('file', start_result.results_file)}}"
+  ignore_errors: yes
+  tags: debug
+
+- name: stop game{{server_id}}
+  shell: "{{ansible_env.HOME}}/game{{server_id}}/run.sh -g stop"
   args:
-    chdir: "{{ansible_env.HOME}}/game{{SERVER_ID}}"
+    chdir: "{{ansible_env.HOME}}/game{{server_id}}"
   tags: stop
 
 

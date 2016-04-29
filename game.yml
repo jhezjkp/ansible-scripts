@@ -2,5 +2,9 @@
 
 - hosts: mercury
   roles:
-    - {role: game, SERVER_ID: 1000, port: 7000}
-    - {role: game, SERVER_ID: 1001, port: 7001}
+    - {role: game, server_id: 1000, port: 7000}
+    - {role: game, server_id: 1001, port: 7001}
+
+- hosts: jupiter
+  roles:
+    - {role: game, server_id: 2000, port: 7000}
