@@ -1,0 +1,12 @@
+---
+# 系统初始化
+
+- name: install docker for {{ hosts }}
+  hosts: '{{ hosts }}'
+  vars_files:
+    - "vars/common.yml"
+    - "vars/{{ ansible_os_family }}.yml"
+    
+  roles:
+    - docker
+
