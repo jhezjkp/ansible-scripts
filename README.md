@@ -23,5 +23,29 @@ Debian或Ubuntu需要root权限时请加上"-K"参数，如：
 ```
 ansible-playbook ssh.yml --extra-var="hosts=all"
 ```
-	
 
+## Google Cloud Engine特别说明
+
+1.首先需要创建一个[Service Account](https://developers.google.com/identity/protocols/OAuth2ServiceAccount#creatinganaccount)并下载对应的son格式的[credentials](https://support.google.com/cloud/answer/6158849?hl=en&ref_topic=6262490#serviceaccounts)
+
+2.下载[gce.py](https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/gce.py)和[gce.ini](https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/gce.ini)
+
+3.配置认证数据
+
++ 方法一[推荐]
+
+  创建secrets.py，内容如下：
+
+  ```python
+  GCE_PARAMS = ('<步骤一创建的Service Account>', '<步骤一下载的json凭证完整路径>')
+  GCE_KEYWORD_PARAMS = {'project': '<项目ID>'}
+  ```
+
+  记得将该文件从版本库中忽略
+
+
++ 方法二
+
+  将gce.ini中对应的gce_service_account_email_address、gce_service_account_pem_file_path和gce_project_id填写一下
+
+4.使用ansible-playbook -i gce.py xxxx.yml --extra-vars="hosts=mars ansible_ssh_user=xxx"进行操作
