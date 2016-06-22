@@ -2,39 +2,14 @@
 #部署docker
 
 - block:
-  - name: purge
-    apt: name={{item}} purge=yes
-    with_items:
-      - lxc-docker*
-      - docker.io*
-    ignore_errors: yes
+  - name: install latest docker
+    shell: curl -fsSL https://test.docker.com/ | sh
+    when: version == 'latest'
 
-  - name: install requirements
-    apt: name={{item}} state=present update_cache=yes
-    with_items:
-      - apt-transport-https
-      - ca-certificates
+  - name: install stable docker
+    shell: curl -fsSL https://get.docker.com/ | sh
+    when: version == 'stable'
 
-  - name: add apt key
-    shell: "curl -sSL https://get.docker.com/gpg | sudo apt-key add -"
-
-  - name: copy sourcelist file
-    copy: src=docker.list dest=/etc/apt/sources.list.d/
-
-  - name: verify
-    shell: apt-cache policy docker-engine
-
-  - name: install docker
-    apt: name=docker-engine update_cache=yes install_recommends=yes state=present force=yes
-
-  - name: start docker service
-    service: name=docker state=started
-
-  - name: change root password
-    user: name=root password="$6$rounds=656000$jotNLM/zpSsV8OQb$T/h.aKKRM1TAKDkWDGRsDQdTC/8kgpDhr8AxAry6KsRPfUaZR1mJyhRXnVE5rntdJXXl.GcM79.jr.CnCr.yD/"
-  
-  - name: add {{ansible_ssh_user}} to docker group
-    user: name={{ansible_ssh_user}} group=docker append=yes
   become: yes
   #become_method: sudo
 
