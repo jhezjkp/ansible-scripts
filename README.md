@@ -24,7 +24,7 @@ Debian或Ubuntu需要root权限时请加上"-K"参数，如：
 ansible-playbook ssh.yml --extra-var="hosts=all"
 ```
 
-## Google Cloud Engine特别说明
+## Google Cloud Engine特别说明(动态inventory)
 
 1.首先需要创建一个[Service Account](https://developers.google.com/identity/protocols/OAuth2ServiceAccount#creatinganaccount)并下载对应的son格式的[credentials](https://support.google.com/cloud/answer/6158849?hl=en&ref_topic=6262490#serviceaccounts)
 
@@ -49,6 +49,16 @@ ansible-playbook ssh.yml --extra-var="hosts=all"
   将gce.ini中对应的gce_service_account_email_address、gce_service_account_pem_file_path和gce_project_id填写一下
 
 4.使用ansible-playbook -i gce.py xxxx.yml -e "hosts=mars ansible_ssh_user=xxx"进行操作
+
+### tips
+
+查看机器列表：
+
+```shell
+python gce.py --list
+```
+
+
 
 ## Google Cloud Engine网络模块操作
 

@@ -2,4 +2,5 @@
 *.retry
 *.swp
 secrets.py
+*.pyc
 oy-0fa64a99ae25.json
