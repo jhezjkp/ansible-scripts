@@ -48,4 +48,28 @@ ansible-playbook ssh.yml --extra-var="hosts=all"
 
   将gce.ini中对应的gce_service_account_email_address、gce_service_account_pem_file_path和gce_project_id填写一下
 
-4.使用ansible-playbook -i gce.py xxxx.yml --extra-vars="hosts=mars ansible_ssh_user=xxx"进行操作
+4.使用ansible-playbook -i gce.py xxxx.yml -e "hosts=mars ansible_ssh_user=xxx"进行操作
+
+## Google Cloud Engine网络模块操作
+
+1、首先使用vault建立自己的gce_config.yml：
+
+```shell
+ansible-vault create gce_config.yml
+```
+
+输入密码后，在弹出的默认编辑器中配置自己的gce认证数据：
+
+```yaml
+---
+service_account_email: xxxx@developer.gserviceaccount.com
+credentials_file: /path/to/your/gce_credentials.json
+project_id: your_project_id
+```
+
+2、修改gce_net.yml并使用以下命令运行：
+
+```shell
+ansible-playbook gce_net.yml -e @gce_config.yml --ask-vault-pass
+```
+

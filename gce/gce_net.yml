@@ -1,0 +1,23 @@
+- hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - name: Create Filewall Rules
+      gce_net:
+        name: default
+        fwname: allow-9000
+        allowed: "tcp:9000"
+        state: active
+        #src_range: "209.9.128.2"
+        #target_tags: ["http-server"]
+        service_account_email: "{{ service_account_email }}"
+        credentials_file: "{{ credentials_file }}"
+        project_id: "{{ project_id }}"
+
+    # - name: Drop Filewall Rules
+    #   gce_net:
+    #     name: default
+    #     fwname: allow-443
+    #     state: deleted
+    #     service_account_email: "{{ service_account_email }}"
+    #     credentials_file: "{{ credentials_file }}"
+    #     project_id: "{{ project_id }}"
