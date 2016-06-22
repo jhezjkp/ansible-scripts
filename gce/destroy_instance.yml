@@ -1,0 +1,17 @@
+#usage: ansible-playbook destroy_instance.yml -e @gce_config.yml --ask-vault-pass
+- hosts: 127.0.0.1
+  connection: local
+  vars:
+    names: dev
+    machine_type: n1-standard-1
+    image: debian-8
+    zone: us-central1-a
+  tasks:
+     - name: Destroy instances
+       gce:
+         state: 'absent'
+         instance_names: "{{names}}"
+         zone: "{{zone}}"
+         service_account_email: "{{ service_account_email }}"
+         credentials_file: "{{ credentials_file }}"
+         project_id: "{{ project_id }}"

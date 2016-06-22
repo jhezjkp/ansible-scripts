@@ -62,7 +62,13 @@ ansible-playbook gce_net.yml -e @gce_config.yml --ask-vault-pass
 创建实例
 
 ```shell
-ansible-playbook instance.yml -e @gce_config.yml --ask-vault-pass
+ansible-playbook create_instance.yml -e @gce_config.yml -e "names=abc" --ask-vault-pass
+```
+
+删除实例
+
+```shell
+ansible-playbook destroy_instance.yml -e @gce_config.yml -e "names=abc" --ask-vault-pass
 ```
 
 
