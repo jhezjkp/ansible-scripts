@@ -1,0 +1,6 @@
+---
+
+- hosts: mars
+  roles:
+    - { role: robertdebock.bootstrap, bootstrap_retries: 1, bootstrap_yum_packages: "python2 sudo htop nc" }
+    - { role : srsp.oracle-java, java_version: 8, java_install_jce: true }
